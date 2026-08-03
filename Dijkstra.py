@@ -1,17 +1,24 @@
 import Nodes as N
 import heapq
 
-def shortest_path(start: str, end: str) -> list:
+def shortest_path(graph: dict, start: str, end: str) -> list:
     """
     Takes inputs start and end which are nodes,
     and determines the shortest path between them
     using the Dijkstra Algorithm
     """
+
+    if start not in graph:
+        raise ValueError(f"Starting node {start} is not in the graph.")
+
+    if end not in graph:
+        raise ValueError(f"Ending node {end} is not in the graph.")
+    
     distances = {} # Saved the shortest known distance from the start node
     previous = {} # To save the relative path from nodes to the previous shortest node
     heap = [] # To organize nodes from lowest weight to highest
     
-    for node in N.graph: # Set all nodes to infinity in distances and set all nodes to None for previous
+    for node in graph: # Set all nodes to infinity in distances and set all nodes to None for previous
         distances[node] = float('inf') 
         previous[node] = None
 
@@ -27,9 +34,8 @@ def shortest_path(start: str, end: str) -> list:
         if current_dist > distances[current_node]: # If the weight of the current node is > overall weight move on to next node in heap
             continue
 
-        for neighbor in N.graph[current_node]: # Iterate through the current node in graph to look at its neighbors
-            weight = N.graph[current_node][neighbor]
-            new_dist = distances[current_node] + weight # Calculated sum of the overeall weight and the weight to the neighbor
+        for neighbor, weight in graph[current_node].items(): # Iterate through the current node in graph to look at its neighbors
+            new_dist = current_dist + weight # Calculated sum of the overeall weight and the weight to the neighbor
 
             if new_dist < distances[neighbor]: 
                 distances[neighbor] = new_dist # If the new weight is less than shortest known distance from the start node, update node
@@ -51,4 +57,14 @@ def shortest_path(start: str, end: str) -> list:
     path.reverse() # Flip list to get list from start to end
     return path
 
-print(shortest_path('C', 'E'))
+node_generator = N.Nodes()
+
+graph = node_generator.dijkstra_nodes(num_nodes=100)
+
+path = shortest_path(
+    graph=graph,
+    start="A1",
+    end="A99"
+)
+
+print(path)
