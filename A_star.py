@@ -12,7 +12,7 @@ class Astar:
         if start not in graph:
                 raise ValueError(f"Starting node {start} is not in the graph.")
         
-            if end not in graph:
+        if end not in graph:
                 raise ValueError(f"Ending node {end} is not in the graph.")
         
         F = G + Astar.heuristic(current_node, end, N.Nodes().astar_nodes[1])
