@@ -1,4 +1,4 @@
-import Nodes as N
+import Nodes_class as N
 import heapq
 
 def shortest_path(graph: dict, start: str, end: str) -> list:

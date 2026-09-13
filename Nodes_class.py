@@ -2,7 +2,8 @@ import random
 import math
 
 class Nodes:
-    def dijkstra_nodes(self, num_nodes: int) -> dict:
+    @staticmethod
+    def dijkstra_nodes(num_nodes: int) -> dict:
 
         graph = {}
 
@@ -18,7 +19,8 @@ class Nodes:
                 graph[node][f"A{i+3}"] = random.randint(1, 20)
         return graph
 
-    def astar_nodes(self, num_nodes: int, connections: int) -> dict:
+    @staticmethod
+    def astar_nodes(num_nodes: int, connections: int) -> dict:
         # Give every node a position
         positions = {
             f"A{i}": (
@@ -29,6 +31,20 @@ class Nodes:
         }
 
         graph = {node: {} for node in positions}
+
+        # First, connect every node to the next node
+        # This guarantees that the graph is connected
+        for i in range(num_nodes - 1):
+            node = f"A{i}"
+            neighbor = f"A{i+1}"
+
+            x1, y1 = positions[node]
+            x2, y2 = positions[neighbor]
+
+            distance = math.hypot(x2 - x1, y2 - y1)
+
+            graph[node][neighbor] = distance
+            graph[neighbor][node] = distance
 
         # Connect each node to its nearest nodes
         for node, (x1, y1) in positions.items():
