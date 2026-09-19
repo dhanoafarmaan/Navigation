@@ -1,17 +1,26 @@
-import math
 import heapq
-from Nodes_class import Nodes
+import osmnx as ox
+
 
 class Astar:
     @staticmethod
-    def heuristic(node, goal, positions):
-        x1, y1 = positions[node]
-        x2, y2 = positions[goal]
+    def heuristic(node, goal, graph):
 
-        return math.hypot(x2 - x1, y2 - y1)
+        x1 = graph.nodes[node]["x"]
+        y1 = graph.nodes[node]["y"]
+
+        x2 = graph.nodes[goal]["x"]
+        y2 = graph.nodes[goal]["y"]
+
+        return ox.distance.great_circle(
+            y1,
+            x1,
+            y2,
+            x2
+        )
 
     @staticmethod
-    def Ashortest_path(graph: dict, positions: dict, start: str, end: str) -> list:
+    def Ashortest_path(graph, start, end) -> list:
         """
         Shortest path algorithm using A* algorithm.
 
@@ -39,10 +48,13 @@ class Astar:
         f_score = {}
         previous = {}
 
+        # Store which specific edge was used to reach each node
+        previous_edge = {}
+
         # Set the initial values for every node
         # All nodes initially have an unknown/infinite cost
         # No previous node has been assigned yet
-        for node in graph:
+        for node in graph.nodes:
             g_score[node] = float('inf')
             f_score[node] = float('inf')
             previous[node] = None
@@ -51,7 +63,7 @@ class Astar:
         g_score[start] = 0
 
         # Calculate the initial f_score for the starting node
-        f_score[start] = Astar.heuristic(start, end, positions)
+        f_score[start] = Astar.heuristic(start, end, graph)
 
         # Add the starting node to the open list
         # The heap keeps the node with the lowest f_score at the top
@@ -74,11 +86,29 @@ class Astar:
             closed_list.append(current_node)
 
             # Check every neighboring node connected to the current node
-            for neighbor, weight in graph[current_node].items():
+            for neighbor in graph.successors(current_node):
 
                 # Skip neighbors that have already been explored
                 if neighbor in closed_list:
                     continue
+
+                # Get all edges connecting the current node to the neighbor
+                edge_data = graph.get_edge_data(
+                    current_node,
+                    neighbor
+                )
+
+                # Find the shortest edge between the current node and neighbor
+                weight = float('inf')
+                best_edge = None
+
+                for key in edge_data:
+                    if "length" in edge_data[key]:
+                        edge_length = edge_data[key]["length"]
+
+                        if edge_length < weight:
+                            weight = edge_length
+                            best_edge = key
 
                 # Calculate the cost of reaching the neighbor through the current node
                 new_g = g_score[current_node] + weight
@@ -94,11 +124,14 @@ class Astar:
                     # so the final path can be reconstructed
                     previous[neighbor] = current_node
 
+                    # Store the specific edge that was used
+                    previous_edge[neighbor] = best_edge
+
                     # Calculate the estimated total cost:
                     # f_score = cost so far + estimated cost to the goal
                     f_score[neighbor] = (
                            new_g
-                           + Astar.heuristic(neighbor, end, positions)
+                           + Astar.heuristic(neighbor, end, graph)
                     )
 
                     # Add the neighbor to the open list so it can be explored
@@ -114,25 +147,24 @@ class Astar:
         # Reconstruct the shortest path by working backwards
         # from the end node using the previous dictionary
         path = []
+        edges = []
+
         node = end
 
         while node is not None:
             path.append(node)
+
+            if previous[node] is not None:
+                edges.append(previous_edge[node])
+
             node = previous[node]
 
         # The path was built from end to start, so reverse it
         # to obtain the path from start to end
         path.reverse()
+
+        # The edges were also built backwards, so reverse them
+        # to obtain the edges from start to end
+        edges.reverse()
                  
-        return path
-
-graph, positions = Nodes.astar_nodes(num_nodes=100, connections=3)
-
-path = Astar.Ashortest_path(
-    graph=graph,
-    positions=positions,
-    start="A1",
-    end="A36"
-)
-
-print(path)
+        return path, edges
