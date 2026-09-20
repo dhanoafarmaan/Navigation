@@ -216,3 +216,9 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# OpenStreetMap graph data
+*.graphml
+
+# Generated route maps
+*.html
