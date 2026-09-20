@@ -5,7 +5,12 @@ from shapely.geometry import Point, LineString
 
 def load_graph(location):
 
-    filename = location.replace(",", "").replace(" ", "_") + ".graphml"
+    os.makedirs("data", exist_ok=True)
+
+    filename = os.path.join(
+        "data",
+        location.replace(",", "").replace(" ", "_") + ".graphml"
+    )
 
     if os.path.exists(filename):
 
